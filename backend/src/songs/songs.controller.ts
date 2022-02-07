@@ -19,12 +19,12 @@ export class SongsController {
     return this.songsService.create(songDto);
   }
 
-  @Put()
-  update(@Body() songDto: UpdateSongDto): any {
-    return this.songsService.update(songDto);
+  @Put(':id')
+  update(@Param('id') id: string, @Body() songDto: UpdateSongDto): any {
+    return this.songsService.update(id, songDto);
   }
 
-  @Delete()
+  @Delete(':id')
   remove(@Param('id') id: string): any{
     return this.songsService.remove(id);
   }
