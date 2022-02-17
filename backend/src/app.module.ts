@@ -2,15 +2,18 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthController } from './auth/auth.controller';
-import { config } from './db.config';
+import { AuthModule } from './auth/auth.module';
+import { config } from './config';
 import { Song } from './songs/entities/song.entity';
-import { SongsController } from './songs/songs.controller';
 import { SongsModule } from './songs/songs.module';
+import { User } from './users/entities/user.entity';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
     SongsModule,
+    AuthModule,
+    UsersModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: config.HOST,
@@ -19,7 +22,8 @@ import { SongsModule } from './songs/songs.module';
       password: config.PASSWORD,
       database: config.DATABASE,
       entities: [
-        Song
+        Song,
+        User
       ],
       synchronize: true
     })
