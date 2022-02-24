@@ -1,36 +1,45 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import * as bcrypt from "bcryptjs";
-import { config } from "src/config";
-import { UsersService } from "src/users/users.service";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcryptjs';
+import { config } from 'src/config';
+import { TokensService } from 'src/tokens/tokens.service';
+import { UsersService } from 'src/users/users.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private tokensService: TokensService
   ) {}
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto);
-    return this.generateToken(user.id, user.username);
+    return this.tokensService.generateToken(user.id, user.username);
   }
 
-  async register(registerDto: RegisterDto) {
-    const user = await this.usersService.getUserByUsername(registerDto.username);
+  async register(registerDto: RegisterDto): Promise<{ accessToken: string, refreshToken: string }> {
+    const user = await this.usersService.getUserByUsername(
+      registerDto.username,
+    );
     if (user) {
-      throw new HttpException("User already exists", HttpStatus.BAD_REQUEST);
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
     const passHash = await bcrypt.hash(registerDto.password, config.SALT);
-    const newUser = await this.usersService.createUser({...registerDto, password: passHash});
-    return this.generateToken(newUser.id, newUser.username);  
-  }
-
-  async generateToken(id: string, username: string) {
-    const payload = { id, username }
-    return this.jwtService.sign(payload) 
+    const newUser = await this.usersService.createUser({
+      ...registerDto,
+      password: passHash,
+    });
+    const tokens = this.tokensService.generateToken(newUser.id, newUser.username);
+    await this.tokensService.saveToken(newUser.id, tokens.refreshToken);
+    
+    return tokens;
   }
 
   private async validateUser(loginDto: LoginDto) {
@@ -41,6 +50,6 @@ export class AuthService {
         return user;
       }
     }
-    throw new UnauthorizedException({ message: "Wrong username or password"} )
+    throw new UnauthorizedException({ message: 'Wrong username or password' });
   }
 }

@@ -8,6 +8,9 @@ import { Song } from './songs/entities/song.entity';
 import { SongsModule } from './songs/songs.module';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
+import { TokensService } from './tokens/tokens.service';
+import { TokensModule } from './tokens/tokens.module';
+import { Token } from './tokens/enitites/token.entity';
 
 @Module({
   imports: [
@@ -21,12 +24,10 @@ import { UsersModule } from './users/users.module';
       username: config.USERNAME,
       password: config.PASSWORD,
       database: config.DATABASE,
-      entities: [
-        Song,
-        User
-      ],
-      synchronize: true
-    })
+      entities: [Song, User, Token],
+      synchronize: true,
+    }),
+    TokensModule,
   ],
   controllers: [AppController],
   providers: [AppService],
