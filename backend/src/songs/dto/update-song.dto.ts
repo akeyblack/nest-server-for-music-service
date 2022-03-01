@@ -1,5 +1,4 @@
 import { IsString, Length } from 'class-validator';
-import { User } from 'src/users/entities/user.entity';
 
 export class UpdateSongDto {
   @IsString({ message: 'Must be string' })

@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/config';
-import { Repository, UpdateResult } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { Token } from './enitites/token.entity';
 
 @Injectable()
@@ -35,5 +36,20 @@ export class TokensService {
     })
   }
 
+  async removeToken(refreshToken: string): Promise<boolean> {
+    const deleteResult = await this.tokensRepository.delete({ refreshToken });
+    return !!deleteResult.affected;
+  }
 
+  async findToken(refreshToken: string): Promise<Token> {
+    return this.tokensRepository.findOne({ refreshToken });
+  }
+
+  async validateAccessToken(token: string): Promise<User> {
+    return this.jwtService.verifyAsync(token, { secret: config.ACCESS_TOKEN_SALT });
+  }
+
+  async validateRefreshToken(token: string): Promise<User> {
+    return this.jwtService.verifyAsync(token, { secret: config.REFRESH_TOKEN_SALT });
+  }
 }

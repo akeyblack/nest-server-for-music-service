@@ -21,3 +21,4 @@ export class Song {
   @ManyToOne(() => User, user => user.songs)
   user: User;
 }
+  

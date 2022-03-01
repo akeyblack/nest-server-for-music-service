@@ -1,5 +1,5 @@
-import { Body, Controller, Post, UsePipes, Request, Headers, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Post, UsePipes, Headers, Res, Req, HttpCode, HttpStatus } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -13,15 +13,33 @@ export class AuthController {
 
   @UsePipes(ValidationPipe)
   @Post('/login')
-  login(@Body() loginDto: LoginDto, @Headers() headers) {
-    console.log(headers);
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Res() res: Response, @Req() req: Request) {
+    const tokens = await this.authService.login(loginDto);
+    res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30*24*60*60*1000, httpOnly: true })
+    return res.json(tokens);
   }
 
   @UsePipes(ValidationPipe)
-  @Post('/register')
-  register(@Body() registerDto: RegisterDto, @Res() res: Response) {
-    const tokens = this.authService.register(registerDto);
-    res.cookie('refreshToken', tokens.refresh)
+  @Post('/register') 
+  async register(@Body() registerDto: RegisterDto, @Res() res: Response) {
+    const tokens = await this.authService.register(registerDto);
+    res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30*24*60*60*1000, httpOnly: true })
+    return res.json(tokens);
+  }
+
+  @Post('/logout')
+  async logout(@Res() res: Response, @Req() req: Request) {
+    const { refreshToken } = req.cookies;
+    const result = await this.authService.logout(refreshToken);
+    res.clearCookie('refreshToken');
+    return res.sendStatus(result? HttpStatus.OK : HttpStatus.ACCEPTED);
+  }
+
+  @Post('/refresh')
+  async refresh(@Res() res: Response, @Req() req: Request) {
+    const { refreshToken } = req.cookies;
+    const tokens = await this.authService.refresh(refreshToken);
+    res.cookie('refreshToken', tokens.refreshToken, { maxAge: 30*24*60*60*1000, httpOnly: true })
+    return res.json(tokens);
   }
 }
