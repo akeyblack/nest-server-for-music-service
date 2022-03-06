@@ -13,13 +13,3 @@ services:
       - ${DB_PORT:-5432}:5432
     volumes:
       - ./docker/pgdata:/var/lib/postgresql/data
-  rabbitmq:
-    image: rabbitmq:3.9.13-management
-    container_name: rabbitmq_course
-    hostname: rabbitmq
-    ports:
-      - ${RABBITMQ_PORT_1:-5672}:5672
-      - ${RABBITMQ_PORT_2:-15672}:15672
-    restart: always
-    volumes:
-      - ./docker/rabbitmqdata:/var/lib/rabbitmq

@@ -4,7 +4,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 import { TokensService } from './tokens.service';
@@ -26,7 +25,6 @@ export class JwtAuthGuard implements CanActivate {
       const authHeader = req.headers.authorization;
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
-
       if (bearer !== 'Bearer' || !token) 
         throw new UnauthorizedException({ message: 'Unauthorized request' });
 
@@ -34,6 +32,7 @@ export class JwtAuthGuard implements CanActivate {
         return this.usersService.getUserById(data.id).then(user => {
           if(user) {
             req.user = user.id;
+            req.body.user = user.id;
             return true;
           }
           throw new UnauthorizedException({ message: 'Unauthorized request' });

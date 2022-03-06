@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { config } from 'src/config';
@@ -46,10 +46,20 @@ export class TokensService {
   }
 
   async validateAccessToken(token: string): Promise<User> {
-    return this.jwtService.verifyAsync(token, { secret: config.ACCESS_TOKEN_SALT });
+    try {
+      const user = await this.jwtService.verifyAsync(token, { secret: config.ACCESS_TOKEN_SALT });
+      return user;
+    } catch (e) {
+      throw new UnauthorizedException({ message: 'Unauthorized request' });
+    }
   }
 
   async validateRefreshToken(token: string): Promise<User> {
-    return this.jwtService.verifyAsync(token, { secret: config.REFRESH_TOKEN_SALT });
+    try {
+      const user = await this.jwtService.verifyAsync(token, { secret: config.REFRESH_TOKEN_SALT });
+      return user;
+    } catch (e) {
+      throw new UnauthorizedException({ message: 'Unauthorized request' });
+    }
   }
 }
