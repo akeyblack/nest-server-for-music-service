@@ -1,16 +1,32 @@
 const env = process.env;
 
-export const config = {
-  HOST: env.HOST ?? 'localhost',
-  REDIS_PORT: Number(env.REDIS_PORT) ?? 6379,
-  POSTGRES_PORT: Number(env.POSTGRES_PORT) ?? 5432,
-  USERNAME: env.USERNAME ?? 'postgres',
-  PASSWORD: env.PASSWORD ?? 'postgres',
-  DATABASE: env.DATEBASE ?? 'course',
+export const config = () => ({
+  database: {
+    type: 'postgres',
+    host: env.HOST ?? 'localhost',
+    port: Number(env.POSTGRES_PORT) ?? 5432,
+    username: env.USERNAME ?? 'postgres',
+    password: env.PASSWORD ?? 'postgres',
+    database: env.DATEBASE ?? 'course',
+    synchronize: true,
+    logging: false,
+    entities: ['dist/**/entities/*.entity.js'],
+  },
 
-  PRIVATE_KEY: env.PRIVATE_KEY ?? 'banana',
-  SALT: Number(env.SALT) ?? 5,
+  privateKey: env.PRIVATE_KEY ?? 'banana',
+  salt: Number(env.SALT) ?? 5,
 
-  ACCESS_TOKEN_SALT: env.ACCESS_TOKEN_SALT ?? "SALT228",
-  REFRESH_TOKEN_SALT: env.REFRESH_TOKEN_SALT ?? "SALT1337",
-};
+  accessTokenSalt:
+   env.ACCESS_TOKEN_SALT ?? "SALT228",
+  refreshTokenSalt: env.REFRESH_TOKEN_SALT ?? "SALT1337",
+
+  aws: {
+    region:  env.AWS_BUCKET_REGION,
+    credentials: {
+      accessKeyId: env.AWS_ACCESS_KEY,
+      secretAccessKey: env.AWS_SECRET_KEY
+    }
+  },
+  awsBucketName: env.AWS_BUCKET_NAME,
+  awsImagesBucketName: env.AWS_IMAGES_BUCKET_NAME
+});

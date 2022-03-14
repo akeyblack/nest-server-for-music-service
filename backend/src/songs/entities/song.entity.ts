@@ -7,16 +7,10 @@ export class Song {
   id: string;
 
   @Column({ type: 'text' })
-  src: string;
-
-  @Column({ type: 'text' })
   title: string;
 
   @Column({ type: 'text' })
   artist: string;
-
-  @Column({ type: 'text' })
-  img: string;
 
   @ManyToOne(() => User, user => user.songs)
   user: User;

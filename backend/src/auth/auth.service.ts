@@ -1,12 +1,11 @@
+import { ConfigService } from '@nestjs/config';
 import {
   HttpException,
   HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { config } from 'src/config';
 import { TokensService } from 'src/tokens/tokens.service';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
@@ -16,8 +15,9 @@ import { RegisterDto } from './dto/register.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private tokensService: TokensService
+    private readonly usersService: UsersService,
+    private readonly tokensService: TokensService,
+    private readonly configService: ConfigService
   ) {}
 
   async login(loginDto: LoginDto): Promise<{ accessToken: string, refreshToken: string }> {
@@ -35,7 +35,7 @@ export class AuthService {
     if (user) {
       throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
-    const passHash = await bcrypt.hash(registerDto.password, config.SALT);
+    const passHash = await bcrypt.hash(registerDto.password, this.configService.get("salt"));
     const newUser = await this.usersService.createUser({
       ...registerDto,
       password: passHash,

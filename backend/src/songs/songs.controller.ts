@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
   UsePipes
@@ -16,11 +18,15 @@ import { CreateSongDto } from './dto/create-song.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
 import { SongsService } from './songs.service';
 import { UserId } from 'src/auth/user-auth.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FilesService } from 'src/files/files.service';
 
 @Controller('songs')
 export class SongsController {
-  constructor(private readonly songsService: SongsService) {}
+  constructor(
+    private readonly songsService: SongsService,
+    private readonly filesService: FilesService
+    ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('my')
@@ -36,14 +42,17 @@ export class SongsController {
 
   @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)
-  @UseInterceptors(
-    FileInterceptor("image", {
-      dest: "./images"
-    })
-  )
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'song', maxCount: 1},
+    { name: 'image', maxCount: 1}
+  ]))
   @Post()
-  create(@Body() songDto: CreateSongDto, @UserId() uid: string) {
-    return this.songsService.create(songDto, uid);
+  async create(@Body() songDto: CreateSongDto, @UserId() uid: string, @UploadedFiles() files: { song: Express.Multer.File[], image?: Express.Multer.File[] }) {
+    if (!files.song)
+      throw new BadRequestException();
+    const songfile = files.song[0];
+    const img = files.image ? files.image[0] : null;
+    return this.songsService.create(songDto, uid, img, songfile);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -24,6 +24,8 @@ export class ValidationPipe implements PipeTransform<any> {
         throw new HttpException(messages, HttpStatus.BAD_REQUEST);
       }
       return value;
+    } else {
+      return value;
     }
   }
 }

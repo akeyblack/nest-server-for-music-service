@@ -3,7 +3,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'src/config';
 import { UsersModule } from 'src/users/users.module';
-import { Token } from './enitites/token.entity';
+import { Token } from './entities/token.entity';
 import { TokensService } from './tokens.service';
 
 @Module({
@@ -12,7 +12,7 @@ import { TokensService } from './tokens.service';
     UsersModule,
     TypeOrmModule.forFeature([Token]),
     JwtModule.register({
-      secret: config.PRIVATE_KEY,
+      secret: config().privateKey,
       signOptions: {
         expiresIn: '12h',
       },

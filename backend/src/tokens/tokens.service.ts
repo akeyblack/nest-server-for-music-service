@@ -1,23 +1,24 @@
+import { ConfigService } from '@nestjs/config';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { config } from 'src/config';
 import { User } from 'src/users/entities/user.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
-import { Token } from './enitites/token.entity';
+import { Repository, UpdateResult } from 'typeorm';
+import { Token } from './entities/token.entity';
 
 @Injectable()
 export class TokensService {
   constructor(
     @InjectRepository(Token)
-    private tokensRepository: Repository<Token>,
-    private jwtService: JwtService
+    private readonly tokensRepository: Repository<Token>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ) {}
 
   generateToken(id: string, username: string): { accessToken: string, refreshToken: string } {
     const payload = { id, username };
-    const accessToken = this.jwtService.sign(payload, { secret: config.ACCESS_TOKEN_SALT, expiresIn: "30m" });
-    const refreshToken = this.jwtService.sign(payload, { secret: config.REFRESH_TOKEN_SALT, expiresIn: "30d" });
+    const accessToken = this.jwtService.sign(payload, { secret: this.configService.get('accessTokenSalt'), expiresIn: "30m" });
+    const refreshToken = this.jwtService.sign(payload, { secret: this.configService.get('refreshTokenSalt'), expiresIn: "30d" });
     return {
       accessToken,
       refreshToken
@@ -47,7 +48,7 @@ export class TokensService {
 
   async validateAccessToken(token: string): Promise<User> {
     try {
-      const user = await this.jwtService.verifyAsync(token, { secret: config.ACCESS_TOKEN_SALT });
+      const user = await this.jwtService.verifyAsync(token, { secret: this.configService.get('accessTokenSalt') });
       return user;
     } catch (e) {
       throw new UnauthorizedException({ message: 'Unauthorized request' });
@@ -56,7 +57,7 @@ export class TokensService {
 
   async validateRefreshToken(token: string): Promise<User> {
     try {
-      const user = await this.jwtService.verifyAsync(token, { secret: config.REFRESH_TOKEN_SALT });
+      const user = await this.jwtService.verifyAsync(token, { secret: this.configService.get('refreshTokenSalt') });
       return user;
     } catch (e) {
       throw new UnauthorizedException({ message: 'Unauthorized request' });
