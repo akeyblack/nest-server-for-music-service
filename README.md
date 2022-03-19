@@ -1,1 +1,1 @@
-# React-Node_Course_work
+# Nest, aws-sdk, custom auth
