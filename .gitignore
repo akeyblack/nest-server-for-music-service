@@ -2,6 +2,8 @@
 /dist
 /node_modules
 # Logs
+todo.txt
+frontend
 logs
 *.log
 npm-debug.log*
