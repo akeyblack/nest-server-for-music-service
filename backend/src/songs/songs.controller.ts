@@ -47,8 +47,9 @@ export class SongsController {
     { name: 'image', maxCount: 1}
   ]))
   @Post()
-  async create(@Body() songDto: CreateSongDto, @UserId() uid: string, @UploadedFiles() files: { song: Express.Multer.File[], image?: Express.Multer.File[] }) {
-    if (!files.song)
+  async create(@Body() songDto: CreateSongDto, @UserId() uid: string, 
+        @UploadedFiles() files: { song: Express.Multer.File[], image?: Express.Multer.File[] }) {
+    if (!files || !files.song)
       throw new BadRequestException();
     const songfile = files.song[0];
     const img = files.image ? files.image[0] : null;
