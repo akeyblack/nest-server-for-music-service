@@ -9,7 +9,7 @@ export class User {
   @Column({ type: 'text' })
   username: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', select: false })
   password: string;
 
   @Column({ type: 'text' })

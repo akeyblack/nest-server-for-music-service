@@ -19,13 +19,11 @@ import { UpdateSongDto } from './dto/update-song.dto';
 import { SongsService } from './songs.service';
 import { UserId } from 'src/auth/user-auth.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { FilesService } from 'src/files/files.service';
 
 @Controller('songs')
 export class SongsController {
   constructor(
-    private readonly songsService: SongsService,
-    private readonly filesService: FilesService
+    private readonly songsService: SongsService
     ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -49,11 +47,12 @@ export class SongsController {
   @Post()
   async create(@Body() songDto: CreateSongDto, @UserId() uid: string, 
         @UploadedFiles() files: { song: Express.Multer.File[], image?: Express.Multer.File[] }) {
-    if (!files || !files.song)
-      throw new BadRequestException();
-    const songfile = files.song[0];
+    if (!files)
+      if(!files.song)
+        throw new BadRequestException();
+    const songFile = files.song[0];
     const img = files.image ? files.image[0] : null;
-    return this.songsService.create(songDto, uid, img, songfile);
+    return this.songsService.create(songDto, uid, img, songFile);
   }
 
   @UseGuards(JwtAuthGuard)

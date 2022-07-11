@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable, BadGatewayException, ServiceUnavailableException } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import * as fs from 'fs';
+import { String } from 'aws-sdk/clients/acm';
 
 @Injectable()
 export class FilesService {
@@ -15,14 +16,13 @@ export class FilesService {
   songBucket: string;
   imageBucket: string;
 
-  async uploadImageFile(file: Express.Multer.File, id: string): Promise<unknown> {
+  async uploadImageFile(file: Express.Multer.File, id: string): Promise<boolean> {
     if (!file)
       file = await this.getStandartImage();
     return this.uploadS3(file.buffer, this.imageBucket, id, file.mimetype);
   }
 
-  async uploadSongFile(file: Express.Multer.File, id: string): Promise<unknown> {
-    const bucket = this.configService.get('awsBucketName');
+  async uploadSongFile(file: Express.Multer.File, id: string): Promise<boolean> {
     return this.uploadS3(file.buffer, this.songBucket,  id, file.mimetype);
   }
 
@@ -42,7 +42,8 @@ export class FilesService {
     return this.removeFromS3(this.songBucket, key);
   }
 
-  private uploadS3(file, bucket, name, type): Promise<unknown> {
+  private uploadS3(file: Express.Multer.File["buffer"], bucket: string,
+                        name: string, type: string): Promise<boolean> {
     const s3 = new S3(this.configService.get('aws'));
     const params = {
       Bucket: bucket,
@@ -51,16 +52,16 @@ export class FilesService {
       ContentType: type
     }
     return new Promise((res) => {
-      s3.upload(params, (err, data) => {
+      s3.upload(params, (err: Error) => {
         if(err) {
           throw new BadGatewayException();
         }
-        res(data);
+        res(true);
       })
     })
   }
 
-  private getFromS3(bucket, key): Promise<string> {
+  private getFromS3(bucket: string, key: string): Promise<string> {
     const s3 = new S3(this.configService.get('aws'));
     const params = {
       Bucket: bucket,
@@ -76,7 +77,7 @@ export class FilesService {
     })
   }
 
-  private removeFromS3(bucket, key): Promise<boolean> {
+  private removeFromS3(bucket: string, key: string): Promise<boolean> {
     const s3 = new S3(this.configService.get('aws'));
     const params = {
       Bucket: bucket,
