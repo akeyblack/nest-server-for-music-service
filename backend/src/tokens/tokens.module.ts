@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { config } from 'src/config';
-import { UsersModule } from 'src/users/users.module';
+import { config } from '../config';
+import { UsersModule } from '../users/users.module';
 import { Token } from './entities/token.entity';
 import { TokensService } from './tokens.service';
 

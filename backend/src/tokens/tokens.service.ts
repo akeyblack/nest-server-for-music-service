@@ -26,7 +26,7 @@ export class TokensService {
   }
 
   async saveToken(userId, refreshToken): Promise<UpdateResult | Token> {
-    const token = await this.tokensRepository.findOne({ user_id: userId });;
+    const token = await this.tokensRepository.findOne({ user_id: userId });
     if (token) {
       token.refreshToken = refreshToken;
       return  this.tokensRepository.update({ user_id: userId }, token);

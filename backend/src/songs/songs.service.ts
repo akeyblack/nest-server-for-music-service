@@ -1,11 +1,12 @@
-import { BadGatewayException, ForbiddenException, HttpException, HttpStatus, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersService } from 'src/users/users.service';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateSongDto } from './dto/create-song.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
 import { Song } from './entities/song.entity';
-import { FilesService } from 'src/files/files.service';
+import { UsersService } from '../users/users.service';
+import { FilesService } from '../files/files.service';
+import * as path from 'path';
 
 @Injectable()
 export class SongsService {
@@ -28,7 +29,12 @@ export class SongsService {
     return songs;
   }
 
-  async create(songDto: CreateSongDto, uid: string, image: Express.Multer.File, songfile: Express.Multer.File): Promise<string> {
+  async create(songDto: CreateSongDto, uid: string, image: Express.Multer.File | null, songfile: Express.Multer.File): Promise<string> {
+    if (image)
+      if (!this.checkFileForImage(image))
+      throw new BadRequestException();
+    if(!this.checkFileForMp3(songfile))
+      throw new BadRequestException();
     const user = await this.usersService.getUserById(uid);
     const song = {
       ...songDto,
@@ -40,14 +46,14 @@ export class SongsService {
       await this.filesService.uploadSongFile(songfile, newSong.id);
     } catch (err) {
       await this.remove(newSong.id, uid);
-      throw new BadGatewayException();
+      throw new BadRequestException();
     }
     return newSong.id;
   }
 
-  async update(id: string, songDto: UpdateSongDto, uid: string): Promise<UpdateResult> {
+  async update(id: string, songDto: UpdateSongDto, uid: string): Promise<boolean> {
     if (await this.isBelongsTo(id, uid))
-      return this.songsRepository.update(id, songDto);
+      return (await this.songsRepository.update(id, songDto)).affected && true;
     else 
       throw new ForbiddenException();
   }
@@ -56,7 +62,7 @@ export class SongsService {
     if (await this.isBelongsTo(id, uid)) {
       await this.filesService.removeImage(id);
       await this.filesService.removeSong(id);
-      return !!(await this.songsRepository.delete(id)).affected;
+      return (await this.songsRepository.delete(id)).affected && true;
     }
     else 
       throw new ForbiddenException();
@@ -65,5 +71,22 @@ export class SongsService {
   private async isBelongsTo(songId, userId): Promise<boolean> {
     const song = await this.songsRepository.findOne({ user: { id: userId}, id: songId })
     return !!song;
+  }
+
+  private checkFileForImage(file: Express.Multer.File): boolean {
+    const allowed = ['.png', '.jpeg', '.jpg', '.gif'];
+    if (!allowed.includes(path.extname(file.originalname))) {
+      throw new BadRequestException();
+    }
+    return true;
+  }
+
+  private checkFileForMp3(file: Express.Multer.File): boolean {
+    const allowed = ['.mp3'];
+
+    if (!allowed.includes(path.extname(file.originalname))) {
+      throw new BadRequestException();
+    }
+    return true;
   }
 }

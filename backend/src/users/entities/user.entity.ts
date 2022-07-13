@@ -1,5 +1,5 @@
-import { Song } from 'src/songs/entities/song.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Song } from '../../songs/entities/song.entity';
 
 @Entity()
 export class User {
@@ -9,7 +9,7 @@ export class User {
   @Column({ type: 'text' })
   username: string;
 
-  @Column({ type: 'text', select: false })
+  @Column({ type: 'text' })
   password: string;
 
   @Column({ type: 'text' })

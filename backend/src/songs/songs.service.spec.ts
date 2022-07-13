@@ -5,7 +5,6 @@ import { FilesService } from '../files/files.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Song } from './entities/song.entity';
 import { User } from '../users/entities/user.entity';
-import { UpdateResult } from 'typeorm';
 
 describe(' Test suite', () => {
   let service: SongsService;
@@ -17,12 +16,17 @@ describe(' Test suite', () => {
     user: new User(),
   }
   const uid = "abc";
-  const file = "smth" as unknown as Express.Multer.File; //we can mock File while controller doesn't deal with it anyway
+  const songfile = {
+    originalname: "abcd.mp3"
+  } as unknown as Express.Multer.File;
+  const imagefile = {
+    originalname: "abcd.png"
+  } as unknown as Express.Multer.File;
 
   const mockSongsRepository = {
     findOne: jest.fn().mockResolvedValue(songDto),
     find: jest.fn().mockResolvedValue([songDto, songDto]),
-    update: jest.fn().mockResolvedValue(UpdateResult),
+    update: jest.fn().mockResolvedValue({affected: 1}),
     delete: jest.fn().mockResolvedValue({affected: 1}),
     save: jest.fn().mockResolvedValue(songDto),
   };
@@ -76,8 +80,8 @@ describe(' Test suite', () => {
     expect(await service.create(
       { title: songDto.title, artist: songDto.artist },
       uid,
-      file,
-      file
+      imagefile,
+      songfile
     )).toEqual(songDto.id);
   });
 
@@ -86,7 +90,7 @@ describe(' Test suite', () => {
       songDto.id,
       { title: songDto.title, artist: songDto.artist },
       uid
-    )).toEqual(UpdateResult);
+    )).toEqual(true);
   });
 
   it('should remove song', async () => {

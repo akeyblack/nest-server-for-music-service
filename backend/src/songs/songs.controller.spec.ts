@@ -18,14 +18,11 @@ describe('SongsController', () => {
   const file = "smth" as unknown as Express.Multer.File; //we can mock File while controller doesn't deal with it anyway
 
   const mockSongsService = {
-    getAllUserSongs: jest.fn().mockImplementation(id => [
-      songDto,
-      songDto,
-    ]),
-    getById: jest.fn().mockImplementation((id, uid) => songDto),
-    create: jest.fn().mockImplementation((dto, uid, image, songFile) => Promise.resolve(songDto.id)),
-    update: jest.fn().mockImplementation((id, dto, uid) => new UpdateResult()),
-    remove: jest.fn().mockImplementation((id, uid) => Promise.resolve(true))
+    getAllUserSongs: jest.fn().mockReturnValue([songDto, songDto]),
+    getById: jest.fn().mockReturnValue(songDto),
+    create: jest.fn().mockResolvedValue(songDto.id),
+    update: jest.fn().mockResolvedValue(true),
+    remove: jest.fn().mockResolvedValue(true),
   };
 
   const mockJwtAuthGuard = {
@@ -86,7 +83,7 @@ describe('SongsController', () => {
 
   it('should update song', () => {
     expect(controller.update(songDto.id, {title: "abc", artist: "abc"}, uid))
-    .toEqual(new UpdateResult())
+    .toEqual(Promise.resolve(true))
 
     expect(mockSongsService.update).toHaveBeenCalled();
   });

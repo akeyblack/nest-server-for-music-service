@@ -1,8 +1,8 @@
 import { ConfigService } from '@nestjs/config';
-import { Injectable, BadGatewayException, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, BadGatewayException, ServiceUnavailableException, BadRequestException, ConsoleLogger } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import * as fs from 'fs';
-import { String } from 'aws-sdk/clients/acm';
+import * as path from 'path';
 
 @Injectable()
 export class FilesService {
